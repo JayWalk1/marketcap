@@ -1,4 +1,4 @@
-const ALPHA_VANTAGE_API_KEY = 'TELDEHV3SJEBW6IH'; // Your API key
+const ALPHA_VANTAGE_API_KEY = 'TELDEHV3SJEBW6IH'; // Your Alpha Vantage API key
 
 async function fetchCryptoData() {
     const response = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1`);
@@ -7,7 +7,7 @@ async function fetchCryptoData() {
 }
 
 async function fetchStockData() {
-    const stockSymbols = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA']; // Add more symbols as needed
+    const stockSymbols = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA'];
     const stockData = [];
 
     for (const symbol of stockSymbols) {
@@ -22,6 +22,32 @@ async function fetchStockData() {
         }
     }
     return stockData;
+}
+
+async function fetchCommodityData() {
+    const commodities = [
+        { symbol: 'GCUSD', name: 'Gold' },
+        { symbol: 'WTI', name: 'Crude Oil' }
+    ];
+    const commodityData = [];
+
+    for (const commodity of commodities) {
+        const response = await fetch(`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${commodity.symbol}&apikey=${ALPHA_VANTAGE_API_KEY}`);
+        const data = await response.json();
+        const timeSeries = data['Time Series (Daily)'];
+        const latestDate = Object.keys(timeSeries)[0];
+        const latestClose = parseFloat(timeSeries[latestDate]['4. close']);
+
+        // Assuming an arbitrary market cap value for demonstration
+        const marketCap = latestClose * 1000000; // This should be replaced with actual data if available
+
+        commodityData.push({
+            name: commodity.name,
+            marketCap: marketCap,
+            type: 'Commodity'
+        });
+    }
+    return commodityData;
 }
 
 function populateTable(combinedData) {
@@ -40,12 +66,13 @@ function populateTable(combinedData) {
 async function initialize() {
     const cryptoData = await fetchCryptoData();
     const stockData = await fetchStockData();
+    const commodityData = await fetchCommodityData();
     const combinedData = [...cryptoData.map((item, index) => ({
         rank: index + 1,
         name: item.name,
         marketCap: item.market_cap,
         type: 'Crypto'
-    })), ...stockData];
+    })), ...stockData, ...commodityData];
 
     combinedData.sort((a, b) => b.marketCap - a.marketCap);
     populateTable(combinedData);
