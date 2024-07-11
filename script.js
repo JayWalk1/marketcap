@@ -13,7 +13,7 @@ async function fetchCryptoData() {
 }
 
 async function fetchStockData() {
-    const stockSymbols = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA'];
+    const stockSymbols = ['AAPL', 'MSFT', 'GOOGL', 'AMZN']; // Limited to 4 to manage rate limit
     const stockData = [];
 
     try {
@@ -39,8 +39,8 @@ async function fetchStockData() {
 
 async function fetchCommodityData() {
     const commodities = [
-        { symbol: 'GCUSD', name: 'Gold' },
-        { symbol: 'WTI', name: 'Crude Oil' }
+        { symbol: 'GC=F', name: 'Gold' }, // Corrected symbol for Gold
+        { symbol: 'CL=F', name: 'Crude Oil' } // Corrected symbol for Crude Oil
     ];
     const commodityData = [];
 
