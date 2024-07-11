@@ -33,6 +33,7 @@ async function fetchStockData() {
         console.error('Error fetching stock data:', error);
     }
     
+    console.log('Final Stock Data:', stockData);
     return stockData;
 }
 
@@ -65,6 +66,7 @@ async function fetchCommodityData() {
         console.error('Error fetching commodity data:', error);
     }
 
+    console.log('Final Commodity Data:', commodityData);
     return commodityData;
 }
 
@@ -84,17 +86,4 @@ function populateTable(combinedData) {
 async function initialize() {
     const cryptoData = await fetchCryptoData();
     const stockData = await fetchStockData();
-    const commodityData = await fetchCommodityData();
-    const combinedData = [...cryptoData.map((item, index) => ({
-        rank: index + 1,
-        name: item.name,
-        marketCap: item.market_cap,
-        type: 'Crypto'
-    })), ...stockData, ...commodityData];
-
-    combinedData.sort((a, b) => b.marketCap - a.marketCap);
-    console.log('Combined Data:', combinedData);
-    populateTable(combinedData);
-}
-
-initialize();
+    const commodityDa
