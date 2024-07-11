@@ -1,4 +1,4 @@
-const API_KEY = 'TELDEHV3SJEBW6IH'; // Replace with your actual API key
+const ALPHA_VANTAGE_API_KEY = 'TELDEHV3SJEBW6IH'; // Your API key
 
 async function fetchCryptoData() {
     const response = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1`);
@@ -7,40 +7,26 @@ async function fetchCryptoData() {
 }
 
 async function fetchStockData() {
-    const response = await fetch(`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=IBM&apikey=${API_KEY}`);
-    const data = await response.json();
-    const timeSeries = data['Time Series (Daily)'];
-    const marketCap = Object.keys(timeSeries).reduce((acc, date) => {
-        return acc + parseFloat(timeSeries[date]['5. adjusted close']) * parseFloat(timeSeries[date]['6. volume']);
-    }, 0);
-    return [{ name: 'IBM', marketCap }];
+    const stockSymbols = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA']; // Add more symbols as needed
+    const stockData = [];
+
+    for (const symbol of stockSymbols) {
+        const response = await fetch(`https://www.alphavantage.co/query?function=OVERVIEW&symbol=${symbol}&apikey=${ALPHA_VANTAGE_API_KEY}`);
+        const data = await response.json();
+        if (data.MarketCapitalization) {
+            stockData.push({
+                name: data.Name,
+                marketCap: parseFloat(data.MarketCapitalization),
+                type: 'Stock'
+            });
+        }
+    }
+    return stockData;
 }
 
-function populateTable(cryptoData, stockData) {
+function populateTable(combinedData) {
     const tableBody = document.getElementById('market-cap-table').getElementsByTagName('tbody')[0];
     tableBody.innerHTML = '';
-
-    let combinedData = [];
-
-    cryptoData.forEach((item, index) => {
-        combinedData.push({
-            rank: index + 1,
-            name: item.name,
-            marketCap: item.market_cap,
-            type: 'Crypto'
-        });
-    });
-
-    stockData.forEach((item, index) => {
-        combinedData.push({
-            rank: cryptoData.length + index + 1,
-            name: item.name,
-            marketCap: item.marketCap,
-            type: 'Stock'
-        });
-    });
-
-    combinedData.sort((a, b) => b.marketCap - a.marketCap);
 
     combinedData.forEach((item, index) => {
         const row = tableBody.insertRow();
@@ -54,7 +40,15 @@ function populateTable(cryptoData, stockData) {
 async function initialize() {
     const cryptoData = await fetchCryptoData();
     const stockData = await fetchStockData();
-    populateTable(cryptoData, stockData);
+    const combinedData = [...cryptoData.map((item, index) => ({
+        rank: index + 1,
+        name: item.name,
+        marketCap: item.market_cap,
+        type: 'Crypto'
+    })), ...stockData];
+
+    combinedData.sort((a, b) => b.marketCap - a.marketCap);
+    populateTable(combinedData);
 }
 
 initialize();
