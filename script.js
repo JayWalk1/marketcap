@@ -50,6 +50,12 @@ async function fetchCommodityData() {
             const data = await response.json();
             console.log(`Commodity Data for ${commodity.symbol}:`, data);
             const timeSeries = data['Time Series (Daily)'];
+
+            if (!timeSeries) {
+                console.error(`No time series data for ${commodity.symbol}`);
+                continue;
+            }
+
             const latestDate = Object.keys(timeSeries)[0];
             const latestClose = parseFloat(timeSeries[latestDate]['4. close']);
 
@@ -86,4 +92,17 @@ function populateTable(combinedData) {
 async function initialize() {
     const cryptoData = await fetchCryptoData();
     const stockData = await fetchStockData();
-    const commodityDa
+    const commodityData = await fetchCommodityData();
+    const combinedData = [...cryptoData.map((item, index) => ({
+        rank: index + 1,
+        name: item.name,
+        marketCap: item.market_cap,
+        type: 'Crypto'
+    })), ...stockData, ...commodityData];
+
+    combinedData.sort((a, b) => b.marketCap - a.marketCap);
+    console.log('Combined Data:', combinedData);
+    populateTable(combinedData);
+}
+
+initialize();
